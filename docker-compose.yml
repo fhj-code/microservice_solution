@@ -1,0 +1,53 @@
+version: '3.4'
+
+networks:
+  backend:
+  frontend:
+
+services:
+  customerdb:
+    container_name: customer-db
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=password@789870#
+    networks:
+      - backend
+    ports:
+      - 18001:1433
+
+  customerwebapi:
+    container_name: customer-api
+    image: ${DOCKER_REGISTRY-}customerwebapi
+    build:
+      context: .
+      dockerfile: CustomerWebApi/Dockerfile
+    networks:
+      - backend
+    environment:
+      - DB_HOST=.
+      - DB_NAME=db-customer
+      - DB_SA_PASSWORD=password@789870#
+
+  apigateway:
+    container_name: api-gateway
+    image: ${DOCKER_REGISTRY-}apigateway
+    build:
+      context: .
+      dockerfile: ApiGateway/Dockerfile
+    ports:
+      - 8001:80
+    networks:
+      - backend
+      - frontend
+
+  blazorserverwebui:
+    container_name: blazor-web-ui
+    image: ${DOCKER_REGISTRY-}blazorserverwebui
+    build:
+      context: .
+      dockerfile: BlazorServerWebUI/Dockerfile
+    ports:
+      - 8002:80
+    networks:
+      - frontend
